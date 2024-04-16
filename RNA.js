@@ -13,31 +13,32 @@ class Neuron {
     constructor(inputs) {
         this.bias = randomRange(-1, 1);
 
-        this.weightList = new Array(inputs)
-        .fill()
-        .map(() => randomRange(-1, 1))
-    }
-}
-
-// analisa saída do neurônio
-g(signalList = []); {
-    let u = 0;
-
-    for (let i = 0; i < this.weightList.lenght; i++) {
-        u += signalList[i] * this.weightList[i];
+        this.weightList = new Array(inputs).fill().map(() => randomRange(-1, 1))
     }
 
-    if (Math.tanh(u) > this.bias) return 1; //Ativado
-    else return 0; //Desativado
-}
+    // Método para analisar saída do neurônio
+    g(signalList = []) {
+        let u = 0;
 
-// função para mudar o neurônio e não ter um ciclo infinito de neurônios iguais
-mutate(rate = 1); {
-    this.weightList = this.weightList.map(() => {
-        return lerp(w, randomRange(-1, 1), rate);
-    })
+        for (let i = 0; i < this.weightList.length; i++) {  // Corrigido 'lenght' para 'length'
+            u += signalList[i] * this.weightList[i];
+        }
 
-    this.bias = lerp(this.bias, randomRange(-1, 1), range)
+        if (Math.tanh(u) > this.bias) {
+            return 1; // Ativado
+        } else {
+            return 0; // Desativado
+        }
+    }
+
+    // função para mudar o neurônio e não ter um ciclo infinito de neurônios iguais
+    mutate(rate = 0.2) {
+        this.weightList = this.weightList.map(w => {
+            return lerp(w, randomRange(-1, 1), rate);
+        })
+
+        this.bias = lerp(this.bias, randomRange(-1, 1), rate)
+    }
 }
 
 // Cria a rede neural
@@ -67,35 +68,38 @@ class RNA {
 
         return list;
     }
-}
 
-// Aplica funções
-mutate(rate = 1); {
-    for (const level of this.levelList) {
-        for (const neuron of level) neuron.mutate(rate)
+    // Aplica funções
+    mutate(rate = 0.5) {
+        for (const level of this.levelList) {
+            for (const neuron of level) neuron.mutate(rate)
+        }
     }
-}
 
-// Carrega configuração na mutação
-load(rna); {
-    if (!rna) return;
+    // Carrega configuração na mutação
+    load(rna) {
+        if (!rna) return;
 
-    try {
-        this.levelList = rna.map((neuronList) => {
-            return neuronList.map((neuron) => {
-                const n = new Neuron();
-                n.bias = neuron.bias;
-                n.weightList = neuron.weightList;
+        try {
+            this.levelList = rna.map((neuronList) => {
+                return neuronList.map((neuron) => {
+                    const n = new Neuron();
+                    n.bias = neuron.bias;
+                    n.weightList = neuron.weightList;
 
-                return n;
+                    return n;
+                });
             });
-        });
-    } catch (e) {
-        return;
-    }
+        } catch (e) {
+            return;
+        }
 
-    save(); {
-        return this.levelList;
+        save(); {
+            return this.levelList;
+        }
+    }
+    save() {
+        return this;
     }
 }
 
